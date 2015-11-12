@@ -1,0 +1,295 @@
+---
+- name: install gnupg 2.1
+  hosts: all
+  tasks:
+      - name: gnupg build dependencies
+        apt: name={{ item }}
+        with_items:
+            - bzip2
+            - build-essential
+            - gettext
+            - texinfo
+            - gnutls-bin
+            - libgnutls28-dev
+      - name: download signing keys
+        command: gpg --keyserver hkp://pgp.mit.edu --recv-keys {{ item }}
+        with_items:
+            # gnupg signing keys
+            - D8692123C4065DEA5E0F3AB5249B39D24F25E3B6
+            - 46CC730865BB5C78EBABADCF04376F3EE0856959
+            - D238EA65D64C67ED4C3073F28A861B1C7EFD60D9
+            - 031EC2536E580D8EA286A9F22071B08A33BD3F06
+            # ncurses signing keys
+            - C52048C0C0748FEE227D47A2702353E0F7E48EDB
+      # libgpg-error
+      - name: download libgpg-error
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-{{ libgpg_error.version }}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-{{ libgpg_error.version }}.tar.bz2.sig
+      - name: verify libgpg-error
+        command: gpg --verify /tmp/libgpg-error-{{ libgpg_error.version }}.tar.bz2.sig /tmp/libgpg-error-{{ libgpg_error.version }}.tar.bz2
+      - name: extract libgpg-error
+        command: tar xjvf /tmp/libgpg-error-{{ libgpg_error.version }}.tar.bz2
+        args:
+            chdir: "{{ src_base }}"
+            creates: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
+      - name: configure libgpg-error
+        command: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
+            creates: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}/Makefile"
+      - name: compile libgpg-error
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
+            creates: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}/src/libgpg-error.la"
+      - shell: find /usr | sort | tee /vagrant/build/libgpg-error.before
+        args:
+            creates: /vagrant/build/libgpg-error.before
+      - name: install libgpg-error
+        command: make install
+        args:
+            chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
+            creates: "{{ prefix }}/lib/libgpg-error.so"
+      - shell: find /usr | sort | tee /vagrant/build/libgpg-error.after
+        args:
+            creates: /vagrant/build/libgpg-error.after
+      # libgcrypt
+      - name: download libgcrypt
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-{{ libgcrypt.version }}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-{{ libgcrypt.version }}.tar.bz2.sig
+      - name: verify libgcrypt
+        command: gpg --verify /tmp/libgcrypt-{{ libgcrypt.version }}.tar.bz2.sig /tmp/libgcrypt-{{ libgcrypt.version }}.tar.bz2
+      - name: extract libgcrypt
+        command: tar xjvf /tmp/libgcrypt-{{ libgcrypt.version }}.tar.bz2
+        args:
+            chdir: "{{ src_base }}/"
+            creates: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
+      - name: configure libgcrypt
+        command: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
+            creates: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}/Makefile"
+      - name: compile libgcrypt
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
+            creates: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}/src/libgcrypt.la"
+      - shell: find /usr | sort | tee /vagrant/build/libgcrypt.before
+        args:
+            creates: /vagrant/build/libgcrypt.before
+      - name: install libgcrypt
+        command: make install
+        args:
+            chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
+            creates: "{{ prefix }}/lib/libgcrypt.so"
+      - shell: find /usr | sort | tee /vagrant/build/libgcrypt.after
+        args:
+            creates: /vagrant/build/libgcrypt.after
+      # libassuan
+      - name: download libassuan
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/libassuan/libassuan-{{ libassuan.version }}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/libassuan/libassuan-{{ libassuan.version }}.tar.bz2.sig
+      - name: verify libassuan
+        command: gpg --verify /tmp/libassuan-{{ libassuan.version }}.tar.bz2.sig /tmp/libassuan-{{ libassuan.version }}.tar.bz2
+      - name: extract libassuan
+        command: tar xjvf /tmp/libassuan-{{ libassuan.version }}.tar.bz2
+        args:
+            chdir: "{{ src_base }}/"
+            creates: "{{ src_base }}/libassuan-{{ libassuan.version }}"
+      - name: configure libassuan
+        command: "{{ src_base }}/libassuan-{{ libassuan.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
+            creates: "{{ src_base }}/libassuan-{{ libassuan.version }}/Makefile"
+      - name: compile libassuan
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
+            creates: "{{ src_base }}/libassuan-{{ libassuan.version }}/src/libassuan.la"
+      - shell: find /usr | sort | tee /vagrant/build/libassuan.before
+        args:
+            creates: /vagrant/build/libassuan.before
+      - name: install libassuan
+        command: make install
+        args:
+            chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
+            creates: "{{ prefix }}/lib/libassuan.so"
+      - shell: find /usr | sort | tee /vagrant/build/libassuan.after
+        args:
+            creates: /vagrant/build/libassuan.after
+      # libksba
+      - name: download libksba
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/libksba/libksba-{{ libksba.version }}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/libksba/libksba-{{ libksba.version }}.tar.bz2.sig
+      - name: verify libksba
+        command: gpg --verify /tmp/libksba-{{ libksba.version }}.tar.bz2.sig /tmp/libksba-{{ libksba.version }}.tar.bz2
+      - name: extract libksba
+        command: tar xjvf /tmp/libksba-{{ libksba.version }}.tar.bz2
+        args:
+            chdir: "{{ src_base }}/"
+            creates: "{{ src_base }}/libksba-{{ libksba.version }}"
+      - name: configure libksba
+        command: "{{ src_base }}/libksba-{{ libksba.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
+            creates: "{{ src_base }}/libksba-{{ libksba.version }}/Makefile"
+      - name: compile libksba
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
+            creates: "{{ src_base }}/libksba-{{ libksba.version }}/src/libksba.la"
+      - shell: find /usr | sort | tee /vagrant/build/libksba.before
+        args:
+            creates: /vagrant/build/libksba.before
+      - name: install libksba
+        command: make install
+        args:
+            chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
+            creates: "{{ prefix }}/lib/libksba.so"
+      - shell: find /usr | sort | tee /vagrant/build/libksba.after
+        args:
+            creates: /vagrant/build/libksba.after
+      # npth
+      - name: download npth
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/npth/npth-{{ npth.version }}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/npth/npth-{{ npth.version }}.tar.bz2.sig
+      - name: verify npth
+        command: gpg --verify /tmp/npth-{{ npth.version }}.tar.bz2.sig /tmp/npth-{{ npth.version }}.tar.bz2
+      - name: extract npth
+        command: tar xjvf /tmp/npth-{{ npth.version }}.tar.bz2
+        args:
+            chdir: "{{ src_base }}/"
+            creates: "{{ src_base }}/npth-{{ npth.version }}"
+      - name: configure npth
+        command: "{{ src_base }}/npth-{{ npth.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/npth-{{ npth.version }}"
+            creates: "{{ src_base }}/npth-{{ npth.version }}/Makefile"
+      - name: compile npth
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/npth-{{ npth.version }}"
+            creates: "{{ src_base }}/npth-{{ npth.version }}/src/libnpth.la"
+      - shell: find /usr | sort | tee /vagrant/build/libnpth.before
+        args:
+            creates: /vagrant/build/libnpth.before
+      - name: install npth
+        command: make install
+        args:
+            chdir: "{{ src_base }}/npth-{{ npth.version }}"
+            creates: "{{ prefix }}/lib/libnpth.so"
+      - shell: find /usr | sort | tee /vagrant/build/libnpth.after
+        args:
+            creates: /vagrant/build/libnpth.after
+      # ncurses
+      - name: download ncurses
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://mirrors.kernel.org/gnu/ncurses/ncurses-{{ ncurses.version }}.tar.gz
+            - https://mirrors.kernel.org/gnu/ncurses/ncurses-{{ ncurses.version }}.tar.gz.sig
+      - name: verify ncurses
+        command: gpg --verify /tmp/ncurses-{{ ncurses.version }}.tar.gz.sig /tmp/ncurses-{{ ncurses.version }}.tar.gz
+      - name: extract ncurses
+        command: tar xzvf /tmp/ncurses-{{ ncurses.version }}.tar.gz
+        args:
+            chdir: "{{ src_base }}/"
+            creates: "{{ src_base }}/ncurses-{{ ncurses.version }}"
+      - name: configure ncurses
+        command: "{{ src_base }}/ncurses-{{ ncurses.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
+            creates: "{{ src_base }}/ncurses-{{ ncurses.version }}/Makefile"
+      - name: compile ncurses
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
+            creates: "{{ src_base }}/ncurses-{{ ncurses.version }}/lib/libncurses.a"
+      - shell: find /usr | sort | tee /vagrant/build/ncurses.before
+        args:
+            creates: /vagrant/build/ncurses.before
+      - name: install ncurses
+        command: make install
+        args:
+            chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
+            creates: "{{ prefix }}/lib/libncurses.a"
+      - shell: find /usr | sort | tee /vagrant/build/ncurses.after
+        args:
+            creates: /vagrant/build/ncurses.after
+      # pinentry
+      - name: download pinentry
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/pinentry/pinentry-{{pinentry.version}}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/pinentry/pinentry-{{pinentry.version}}.tar.bz2.sig
+      - name: verify pinentry
+        command: gpg --verify /tmp/pinentry-{{pinentry.version}}.tar.bz2.sig /tmp/pinentry-{{pinentry.version}}.tar.bz2
+      - name: extract pinentry
+        command: tar xjvf /tmp/pinentry-{{pinentry.version}}.tar.bz2
+        args:
+            chdir: "{{ src_base }}/"
+            creates: "{{ src_base }}/pinentry-{{pinentry.version}}"
+      - name: configure pinentry
+        command: "{{ src_base }}/pinentry-{{pinentry.version}}/configure --prefix={{ prefix }} --enable-gnome3"
+        args:
+            chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
+            creates: "{{ src_base }}/pinentry-{{pinentry.version}}/Makefile"
+      - name: compile pinentry
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
+            creates: "{{ src_base }}/pinentry-{{pinentry.version}}/pinentry/pinentry.o"
+      - shell: find /usr | sort | tee /vagrant/build/pinentry.before
+        args:
+            creates: /vagrant/build/pinentry.before
+      - name: install pinentry
+        command: make install
+        args:
+            chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
+            creates: "{{ prefix }}/bin/pinentry"
+      - shell: find /usr | sort | tee /vagrant/build/pinentry.after
+        args:
+            creates: /vagrant/build/pinentry.after
+      # gnupg
+      - name: download gnupg
+        get_url: url={{ item }} dest=/tmp/
+        with_items:
+            - https://gnupg.org/ftp/gcrypt/gnupg/gnupg-{{ gnupg.version }}.tar.bz2
+            - https://gnupg.org/ftp/gcrypt/gnupg/gnupg-{{ gnupg.version }}.tar.bz2.sig
+      - name: verify gnupg
+        command: gpg --verify /tmp/gnupg-{{ gnupg.version }}.tar.bz2.sig /tmp/gnupg-{{ gnupg.version }}.tar.bz2
+      - name: extract gnupg
+        command: tar xjvf /tmp/gnupg-{{ gnupg.version }}.tar.bz2
+        args:
+            chdir: "{{ src_base }}"
+            creates: "{{ src_base }}/gnupg-{{ gnupg.version }}"
+      - name: configure gnupg
+        command: "{{ src_base }}/gnupg-{{ gnupg.version }}/configure --prefix={{ prefix }}"
+        args:
+            chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
+            creates: "{{ src_base }}/gnupg-{{ gnupg.version }}/Makefile"
+      - name: compile gnupg
+        command: make -j 2
+        args:
+            chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
+            creates: "{{ src_base }}/gnupg-{{ gnupg.version }}/g10/gpg2"
+      - shell: find /usr | sort | tee /vagrant/build/gnupg.before
+        args:
+            creates: /vagrant/build/gnupg.before
+      - name: install gnupg
+        command: make install
+        args:
+            chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
+            creates: "{{ prefix }}/bin/gpg2"
+      - shell: find /usr | sort | tee /vagrant/build/gnupg.after
+        args:
+            creates: /vagrant/build/gnupg.after

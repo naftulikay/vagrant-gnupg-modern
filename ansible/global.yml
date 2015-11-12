@@ -1,0 +1,27 @@
+---
+src_base: /usr/src
+prefix: /usr
+
+libgpg_error:
+    version: "1.20"
+
+libgcrypt:
+    version: 1.6.4
+
+libassuan:
+    version: 2.3.0
+
+libksba:
+    version: 1.3.3
+
+npth:
+    version: "1.2"
+
+ncurses:
+    version: "6.0"
+
+pinentry:
+    version: 0.9.5
+
+gnupg:
+    version: 2.1.9
