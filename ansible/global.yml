@@ -1,6 +1,7 @@
 ---
 src_base: /usr/src
 prefix: /usr
+build_base: /vagrant/build
 
 libgpg_error:
     version: "1.20"

@@ -2,6 +2,17 @@
 - name: install gnupg 2.1
   hosts: all
   tasks:
+      - name: create build directories
+        file: path={{ build_base }}/{{ item }} state=directory owner=vagrant group=vagrant
+        with_items:
+            - libgpg-error-{{ libgpg_error.version }}
+            - libgcrypt-{{ libgcrypt.version }}
+            - libassuan-{{ libassuan.version }}
+            - libksba-{{ libksba.version }}
+            - npth-{{ npth.version }}
+            - ncurses-{{ ncurses.version }}
+            - pinentry-{{ pinentry.version }}
+            - gnupg-{{ gnupg.version }}
       - name: gnupg build dependencies
         apt: name={{ item }}
         with_items:
@@ -44,17 +55,13 @@
         args:
             chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
             creates: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}/src/libgpg-error.la"
-      - shell: find /usr | sort | tee /vagrant/build/libgpg-error.before
-        args:
-            creates: /vagrant/build/libgpg-error.before
       - name: install libgpg-error
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libgpg-error-{{ libgpg_error.version }}
         args:
             chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
-            creates: "{{ prefix }}/lib/libgpg-error.so"
-      - shell: find /usr | sort | tee /vagrant/build/libgpg-error.after
-        args:
-            creates: /vagrant/build/libgpg-error.after
       # libgcrypt
       - name: download libgcrypt
         get_url: url={{ item }} dest=/tmp/
@@ -78,17 +85,13 @@
         args:
             chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
             creates: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}/src/libgcrypt.la"
-      - shell: find /usr | sort | tee /vagrant/build/libgcrypt.before
-        args:
-            creates: /vagrant/build/libgcrypt.before
       - name: install libgcrypt
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libgcrypt-{{ libgcrypt.version }}
         args:
             chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
-            creates: "{{ prefix }}/lib/libgcrypt.so"
-      - shell: find /usr | sort | tee /vagrant/build/libgcrypt.after
-        args:
-            creates: /vagrant/build/libgcrypt.after
       # libassuan
       - name: download libassuan
         get_url: url={{ item }} dest=/tmp/
@@ -112,17 +115,13 @@
         args:
             chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
             creates: "{{ src_base }}/libassuan-{{ libassuan.version }}/src/libassuan.la"
-      - shell: find /usr | sort | tee /vagrant/build/libassuan.before
-        args:
-            creates: /vagrant/build/libassuan.before
       - name: install libassuan
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libassuan-{{ libassuan.version }}
         args:
             chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
-            creates: "{{ prefix }}/lib/libassuan.so"
-      - shell: find /usr | sort | tee /vagrant/build/libassuan.after
-        args:
-            creates: /vagrant/build/libassuan.after
       # libksba
       - name: download libksba
         get_url: url={{ item }} dest=/tmp/
@@ -146,17 +145,13 @@
         args:
             chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
             creates: "{{ src_base }}/libksba-{{ libksba.version }}/src/libksba.la"
-      - shell: find /usr | sort | tee /vagrant/build/libksba.before
-        args:
-            creates: /vagrant/build/libksba.before
       - name: install libksba
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libksba-{{ libksba.version }}
         args:
             chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
-            creates: "{{ prefix }}/lib/libksba.so"
-      - shell: find /usr | sort | tee /vagrant/build/libksba.after
-        args:
-            creates: /vagrant/build/libksba.after
       # npth
       - name: download npth
         get_url: url={{ item }} dest=/tmp/
@@ -180,17 +175,13 @@
         args:
             chdir: "{{ src_base }}/npth-{{ npth.version }}"
             creates: "{{ src_base }}/npth-{{ npth.version }}/src/libnpth.la"
-      - shell: find /usr | sort | tee /vagrant/build/libnpth.before
-        args:
-            creates: /vagrant/build/libnpth.before
       - name: install npth
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/npth-{{ npth.version }}
         args:
             chdir: "{{ src_base }}/npth-{{ npth.version }}"
-            creates: "{{ prefix }}/lib/libnpth.so"
-      - shell: find /usr | sort | tee /vagrant/build/libnpth.after
-        args:
-            creates: /vagrant/build/libnpth.after
       # ncurses
       - name: download ncurses
         get_url: url={{ item }} dest=/tmp/
@@ -214,17 +205,13 @@
         args:
             chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
             creates: "{{ src_base }}/ncurses-{{ ncurses.version }}/lib/libncurses.a"
-      - shell: find /usr | sort | tee /vagrant/build/ncurses.before
-        args:
-            creates: /vagrant/build/ncurses.before
       - name: install ncurses
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/ncurses-{{ ncurses.version }}
         args:
             chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
-            creates: "{{ prefix }}/lib/libncurses.a"
-      - shell: find /usr | sort | tee /vagrant/build/ncurses.after
-        args:
-            creates: /vagrant/build/ncurses.after
       # pinentry
       - name: download pinentry
         get_url: url={{ item }} dest=/tmp/
@@ -248,17 +235,13 @@
         args:
             chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
             creates: "{{ src_base }}/pinentry-{{pinentry.version}}/pinentry/pinentry.o"
-      - shell: find /usr | sort | tee /vagrant/build/pinentry.before
-        args:
-            creates: /vagrant/build/pinentry.before
       - name: install pinentry
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/pinentry-{{ pinentry.version }}
         args:
             chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
-            creates: "{{ prefix }}/bin/pinentry"
-      - shell: find /usr | sort | tee /vagrant/build/pinentry.after
-        args:
-            creates: /vagrant/build/pinentry.after
       # gnupg
       - name: download gnupg
         get_url: url={{ item }} dest=/tmp/
@@ -282,14 +265,10 @@
         args:
             chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
             creates: "{{ src_base }}/gnupg-{{ gnupg.version }}/g10/gpg2"
-      - shell: find /usr | sort | tee /vagrant/build/gnupg.before
-        args:
-            creates: /vagrant/build/gnupg.before
       - name: install gnupg
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/gnupg-{{ gnupg.version }}
         args:
             chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
-            creates: "{{ prefix }}/bin/gpg2"
-      - shell: find /usr | sort | tee /vagrant/build/gnupg.after
-        args:
-            creates: /vagrant/build/gnupg.after
