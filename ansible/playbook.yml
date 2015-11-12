@@ -2,6 +2,17 @@
 - name: install gnupg 2.1
   hosts: all
   tasks:
+      - name: create build directories
+        file: path={{ build_base }}/{{ item }} state=directory owner=vagrant group=vagrant
+        with_items:
+            - libgpg-error-{{ libgpg_error.version }}
+            - libgcrypt-{{ libgcrypt.version }}
+            - libassuan-{{ libassuan.version }}
+            - libksba-{{ libksba.version }}
+            - npth-{{ npth.version }}
+            - ncurses-{{ ncurses.version }}
+            - pinentry-{{ pinentry.version }}
+            - gnupg-{{ gnupg.version }}
       - name: gnupg build dependencies
         apt: name={{ item }}
         with_items:
@@ -45,10 +56,12 @@
             chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
             creates: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}/src/libgpg-error.la"
       - name: install libgpg-error
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libgpg-error-{{ libgpg_error.version }}
         args:
             chdir: "{{ src_base }}/libgpg-error-{{ libgpg_error.version }}"
-            creates: "{{ prefix }}/lib/libgpg-error.so"
       # libgcrypt
       - name: download libgcrypt
         get_url: url={{ item }} dest=/tmp/
@@ -73,10 +86,12 @@
             chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
             creates: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}/src/libgcrypt.la"
       - name: install libgcrypt
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libgcrypt-{{ libgcrypt.version }}
         args:
             chdir: "{{ src_base }}/libgcrypt-{{ libgcrypt.version }}"
-            creates: "{{ prefix }}/lib/libgcrypt.so"
       # libassuan
       - name: download libassuan
         get_url: url={{ item }} dest=/tmp/
@@ -101,10 +116,12 @@
             chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
             creates: "{{ src_base }}/libassuan-{{ libassuan.version }}/src/libassuan.la"
       - name: install libassuan
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libassuan-{{ libassuan.version }}
         args:
             chdir: "{{ src_base }}/libassuan-{{ libassuan.version }}"
-            creates: "{{ prefix }}/lib/libassuan.so"
       # libksba
       - name: download libksba
         get_url: url={{ item }} dest=/tmp/
@@ -129,10 +146,12 @@
             chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
             creates: "{{ src_base }}/libksba-{{ libksba.version }}/src/libksba.la"
       - name: install libksba
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/libksba-{{ libksba.version }}
         args:
             chdir: "{{ src_base }}/libksba-{{ libksba.version }}"
-            creates: "{{ prefix }}/lib/libksba.so"
       # npth
       - name: download npth
         get_url: url={{ item }} dest=/tmp/
@@ -157,10 +176,12 @@
             chdir: "{{ src_base }}/npth-{{ npth.version }}"
             creates: "{{ src_base }}/npth-{{ npth.version }}/src/libnpth.la"
       - name: install npth
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/npth-{{ npth.version }}
         args:
             chdir: "{{ src_base }}/npth-{{ npth.version }}"
-            creates: "{{ prefix }}/lib/libnpth.so"
       # ncurses
       - name: download ncurses
         get_url: url={{ item }} dest=/tmp/
@@ -185,10 +206,12 @@
             chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
             creates: "{{ src_base }}/ncurses-{{ ncurses.version }}/lib/libncurses.a"
       - name: install ncurses
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/ncurses-{{ ncurses.version }}
         args:
             chdir: "{{ src_base }}/ncurses-{{ ncurses.version }}"
-            creates: "{{ prefix }}/lib/libncurses.a"
       # pinentry
       - name: download pinentry
         get_url: url={{ item }} dest=/tmp/
@@ -213,10 +236,12 @@
             chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
             creates: "{{ src_base }}/pinentry-{{pinentry.version}}/pinentry/pinentry.o"
       - name: install pinentry
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/pinentry-{{ pinentry.version }}
         args:
             chdir: "{{ src_base }}/pinentry-{{pinentry.version}}"
-            creates: "{{ prefix }}/bin/pinentry"
       # gnupg
       - name: download gnupg
         get_url: url={{ item }} dest=/tmp/
@@ -241,7 +266,9 @@
             chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
             creates: "{{ src_base }}/gnupg-{{ gnupg.version }}/g10/gpg2"
       - name: install gnupg
-        command: make install
+        command: make {{ item }} install
+        with_items:
+            -
+            - DESTDIR={{ build_base }}/gnupg-{{ gnupg.version }}
         args:
             chdir: "{{ src_base }}/gnupg-{{ gnupg.version }}"
-            creates: "{{ prefix }}/bin/gpg2"
